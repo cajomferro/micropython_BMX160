@@ -7,7 +7,7 @@ THIS IS STILL WORK IN PROGRESS. USE AT YOUR OWN RISK.
 
 ## Example setup and usage:
 
-In order to use the `Makefile` you will need to install the [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html] library) on your host machine first.
+In order to use the `Makefile` you will need to install the [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html) library on your host machine first.
 As an alternative use any serial app (e.g., screen).
 
 Note that you might need to adjust some I2C settings depending on your target Micropython board. 

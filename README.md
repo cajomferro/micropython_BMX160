@@ -5,14 +5,31 @@ For reference, see the datasheet for the device [here](https://www.bosch-sensort
 
 THIS IS STILL WORK IN PROGRESS. USE AT YOUR OWN RISK.
 
-## Example setup and usage:
+## Example setup and usage
 
-In order to use the `Makefile` you will need to install the [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html) library on your host machine first.
-As an alternative use any serial app (e.g., screen).
+Upload the three modules: `i2c_device.py`, `bmx160.py`, and `main.py`.
 
 Note that you might need to adjust some I2C settings depending on your target Micropython board. 
 Check the `main.py` file.
 
+```python
+# Basic usage (use the Makefile below to run the example)
+from micropython import const
+from machine import Pin, I2C
+from i2c_device import I2CDevice
+from bmx160 import BMX160_I2C
+
+BMX160_I2C_ADRR = const(0x68)
+i2c = I2C(1, scl=Pin("SCL"), sda=Pin("SDA"))
+device = I2CDevice(i2c, BMX160_I2C_ADRR)
+bmx = BMX160_I2C(device)
+print(f"gyro: {bmx.gyro}, accel: {bmx.accel}, mag: {bmx.mag}")
+```
+
+### Running the example `app.py`
+
+In order to use the `Makefile` you will need to install the [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html) library on your host machine first.
+As an alternative use any serial app (e.g., screen).
 
 ```python
 # From host machine:

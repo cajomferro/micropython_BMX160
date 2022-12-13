@@ -1,119 +1,121 @@
 import time
+
 try:
     import struct
 except ImportError:
     import ustruct as struct
 
-from adafruit_bus_device.i2c_device import I2CDevice
-from adafruit_bus_device.spi_device import SPIDevice
+# from adafruit_bus_device.i2c_device import I2CDevice
+# from adafruit_bus_device.spi_device import SPIDevice
 from micropython import const
-from adafruit_register.i2c_struct import Struct, UnaryStruct
-from adafruit_register.i2c_bits import ROBits, RWBits
-from adafruit_register.i2c_bit import ROBit, RWBit
+
+# from adafruit_register.i2c_struct import Struct, UnaryStruct
+# from adafruit_register.i2c_bits import ROBits, RWBits
+# from adafruit_register.i2c_bit import ROBit, RWBit
 
 # Chip ID
 BMX160_CHIP_ID = const(0xD8)
 
 # Soft reset command
-BMX160_SOFT_RESET_CMD      = const(0xb6)
-BMX160_SOFT_RESET_DELAY    = 0.001
+BMX160_SOFT_RESET_CMD = const(0xb6)
+BMX160_SOFT_RESET_DELAY = 0.001
 
 # Command
-BMX160_COMMAND_REG_ADDR    = const(0x7E)
+BMX160_COMMAND_REG_ADDR = const(0x7E)
 
 # BMX160 Register map
-BMX160_CHIP_ID_ADDR        = const(0x00)
-BMX160_ERROR_REG_ADDR      = const(0x02)
-BMX160_PMU_STATUS_ADDR     = const(0x03)
-BMX160_SENSOR_TIME_ADDR    = const(0x18)
-BMX160_MAG_DATA_ADDR       = const(0x04)
-BMX160_GYRO_DATA_ADDR      = const(0x0C)
-BMX160_ACCEL_DATA_ADDR     = const(0x12)
-BMX160_STATUS_ADDR         = const(0x1B)
-BMX160_INT_STATUS_ADDR     = const(0x1C)
-BMX160_TEMP_DATA_ADDR      = const(0x20)
-BMX160_FIFO_LENGTH_ADDR    = const(0x22)
-BMX160_FIFO_DATA_ADDR      = const(0x24)
-BMX160_ACCEL_CONFIG_ADDR   = const(0x40)
-BMX160_ACCEL_RANGE_ADDR    = const(0x41)
-BMX160_GYRO_CONFIG_ADDR    = const(0x42)
-BMX160_GYRO_RANGE_ADDR     = const(0x43)
-BMX160_MAG_ODR_ADDR        = const(0x44)
-BMX160_FIFO_DOWN_ADDR      = const(0x45)
-BMX160_FIFO_CONFIG_0_ADDR  = const(0x46)
-BMX160_FIFO_CONFIG_1_ADDR  = const(0x47)
+BMX160_CHIP_ID_ADDR = const(0x00)
+BMX160_ERROR_REG_ADDR = const(0x02)
+BMX160_PMU_STATUS_ADDR = const(0x03)
+BMX160_SENSOR_TIME_ADDR = const(0x18)
+BMX160_MAG_DATA_ADDR = const(0x04)
+BMX160_GYRO_DATA_ADDR = const(0x0C)
+BMX160_ACCEL_DATA_ADDR = const(0x12)
+BMX160_STATUS_ADDR = const(0x1B)
+BMX160_INT_STATUS_ADDR = const(0x1C)
+BMX160_TEMP_DATA_ADDR = const(0x20)
+BMX160_FIFO_LENGTH_ADDR = const(0x22)
+BMX160_FIFO_DATA_ADDR = const(0x24)
+BMX160_ACCEL_CONFIG_ADDR = const(0x40)
+BMX160_ACCEL_RANGE_ADDR = const(0x41)
+BMX160_GYRO_CONFIG_ADDR = const(0x42)
+BMX160_GYRO_RANGE_ADDR = const(0x43)
+BMX160_MAG_ODR_ADDR = const(0x44)
+BMX160_FIFO_DOWN_ADDR = const(0x45)
+BMX160_FIFO_CONFIG_0_ADDR = const(0x46)
+BMX160_FIFO_CONFIG_1_ADDR = const(0x47)
 # BMX160_MAG_IF_0_ADDR       = const(0x4B)
-BMX160_MAG_IF_0_ADDR       = const(0x4C)
-BMX160_MAG_IF_1_ADDR       = const(0x4D)
-BMX160_MAG_IF_2_ADDR       = const(0x4E)
-BMX160_MAG_IF_3_ADDR       = const(0x4F)
-BMX160_INT_ENABLE_0_ADDR   = const(0x50)
-BMX160_INT_ENABLE_1_ADDR   = const(0x51)
-BMX160_INT_ENABLE_2_ADDR   = const(0x52)
-BMX160_INT_OUT_CTRL_ADDR   = const(0x53)
-BMX160_INT_LATCH_ADDR      = const(0x54)
-BMX160_INT_MAP_0_ADDR      = const(0x55)
-BMX160_INT_MAP_1_ADDR      = const(0x56)
-BMX160_INT_MAP_2_ADDR      = const(0x57)
-BMX160_INT_DATA_0_ADDR     = const(0x58)
-BMX160_INT_DATA_1_ADDR     = const(0x59)
-BMX160_INT_LOWHIGH_0_ADDR  = const(0x5A)
-BMX160_INT_LOWHIGH_1_ADDR  = const(0x5B)
-BMX160_INT_LOWHIGH_2_ADDR  = const(0x5C)
-BMX160_INT_LOWHIGH_3_ADDR  = const(0x5D)
-BMX160_INT_LOWHIGH_4_ADDR  = const(0x5E)
-BMX160_INT_MOTION_0_ADDR   = const(0x5F)
-BMX160_INT_MOTION_1_ADDR   = const(0x60)
-BMX160_INT_MOTION_2_ADDR   = const(0x61)
-BMX160_INT_MOTION_3_ADDR   = const(0x62)
-BMX160_INT_TAP_0_ADDR      = const(0x63)
-BMX160_INT_TAP_1_ADDR      = const(0x64)
-BMX160_INT_ORIENT_0_ADDR   = const(0x65)
-BMX160_INT_ORIENT_1_ADDR   = const(0x66)
-BMX160_INT_FLAT_0_ADDR     = const(0x67)
-BMX160_INT_FLAT_1_ADDR     = const(0x68)
-BMX160_FOC_CONF_ADDR       = const(0x69)
-BMX160_CONF_ADDR           = const(0x6A)
+BMX160_MAG_IF_0_ADDR = const(0x4C)
+BMX160_MAG_IF_1_ADDR = const(0x4D)
+BMX160_MAG_IF_2_ADDR = const(0x4E)
+BMX160_MAG_IF_3_ADDR = const(0x4F)
+BMX160_INT_ENABLE_0_ADDR = const(0x50)
+BMX160_INT_ENABLE_1_ADDR = const(0x51)
+BMX160_INT_ENABLE_2_ADDR = const(0x52)
+BMX160_INT_OUT_CTRL_ADDR = const(0x53)
+BMX160_INT_LATCH_ADDR = const(0x54)
+BMX160_INT_MAP_0_ADDR = const(0x55)
+BMX160_INT_MAP_1_ADDR = const(0x56)
+BMX160_INT_MAP_2_ADDR = const(0x57)
+BMX160_INT_DATA_0_ADDR = const(0x58)
+BMX160_INT_DATA_1_ADDR = const(0x59)
+BMX160_INT_LOWHIGH_0_ADDR = const(0x5A)
+BMX160_INT_LOWHIGH_1_ADDR = const(0x5B)
+BMX160_INT_LOWHIGH_2_ADDR = const(0x5C)
+BMX160_INT_LOWHIGH_3_ADDR = const(0x5D)
+BMX160_INT_LOWHIGH_4_ADDR = const(0x5E)
+BMX160_INT_MOTION_0_ADDR = const(0x5F)
+BMX160_INT_MOTION_1_ADDR = const(0x60)
+BMX160_INT_MOTION_2_ADDR = const(0x61)
+BMX160_INT_MOTION_3_ADDR = const(0x62)
+BMX160_INT_TAP_0_ADDR = const(0x63)
+BMX160_INT_TAP_1_ADDR = const(0x64)
+BMX160_INT_ORIENT_0_ADDR = const(0x65)
+BMX160_INT_ORIENT_1_ADDR = const(0x66)
+BMX160_INT_FLAT_0_ADDR = const(0x67)
+BMX160_INT_FLAT_1_ADDR = const(0x68)
+BMX160_FOC_CONF_ADDR = const(0x69)
+BMX160_CONF_ADDR = const(0x6A)
 
 BMX160_ACCEL_BW_NORMAL_AVG4 = const(0x02)
-BMX160_GYRO_BW_NORMAL_MODE  = const(0x02)
+BMX160_GYRO_BW_NORMAL_MODE = const(0x02)
 
-BMX160_SELF_TEST_ADDR                = const(0x6D)
+BMX160_SELF_TEST_ADDR = const(0x6D)
 # Self test configurations
-BMX160_ACCEL_SELF_TEST_CONFIG        = const(0x2C)
-BMX160_ACCEL_SELF_TEST_POSITIVE_EN   = const(0x0D)
-BMX160_ACCEL_SELF_TEST_NEGATIVE_EN   = const(0x09)
-BMX160_ACCEL_SELF_TEST_LIMIT         = const(8192)
+BMX160_ACCEL_SELF_TEST_CONFIG = const(0x2C)
+BMX160_ACCEL_SELF_TEST_POSITIVE_EN = const(0x0D)
+BMX160_ACCEL_SELF_TEST_NEGATIVE_EN = const(0x09)
+BMX160_ACCEL_SELF_TEST_LIMIT = const(8192)
 
 # Power mode settings
 # Accel power mode
-BMX160_ACCEL_NORMAL_MODE             = const(0x11)
-BMX160_ACCEL_LOWPOWER_MODE           = const(0x12)
-BMX160_ACCEL_SUSPEND_MODE            = const(0x10)
+BMX160_ACCEL_NORMAL_MODE = const(0x11)
+BMX160_ACCEL_LOWPOWER_MODE = const(0x12)
+BMX160_ACCEL_SUSPEND_MODE = const(0x10)
 
 BMX160_ACCEL_MODES = [BMX160_ACCEL_NORMAL_MODE,
                       BMX160_ACCEL_LOWPOWER_MODE,
                       BMX160_ACCEL_SUSPEND_MODE]
 
 # Gyro power mode
-BMX160_GYRO_SUSPEND_MODE             = const(0x14)
-BMX160_GYRO_NORMAL_MODE              = const(0x15)
-BMX160_GYRO_FASTSTARTUP_MODE         = const(0x17)
+BMX160_GYRO_SUSPEND_MODE = const(0x14)
+BMX160_GYRO_NORMAL_MODE = const(0x15)
+BMX160_GYRO_FASTSTARTUP_MODE = const(0x17)
 
 BMX160_GYRO_MODES = [BMX160_GYRO_SUSPEND_MODE,
                      BMX160_GYRO_NORMAL_MODE,
                      BMX160_GYRO_FASTSTARTUP_MODE]
 
 # Mag power mode
-BMX160_MAG_SUSPEND_MODE              = const(0x18)
-BMX160_MAG_NORMAL_MODE               = const(0x19)
-BMX160_MAG_LOWPOWER_MODE             = const(0x1A)
+BMX160_MAG_SUSPEND_MODE = const(0x18)
+BMX160_MAG_NORMAL_MODE = const(0x19)
+BMX160_MAG_LOWPOWER_MODE = const(0x1A)
 
 # Accel Range
-BMX160_ACCEL_RANGE_2G                = const(0x03)
-BMX160_ACCEL_RANGE_4G                = const(0x05)
-BMX160_ACCEL_RANGE_8G                = const(0x08)
-BMX160_ACCEL_RANGE_16G               = const(0x0C)
+BMX160_ACCEL_RANGE_2G = const(0x03)
+BMX160_ACCEL_RANGE_4G = const(0x05)
+BMX160_ACCEL_RANGE_8G = const(0x08)
+BMX160_ACCEL_RANGE_16G = const(0x0C)
 
 # BMX160_ACCEL_RANGE_CONSTANTS = [BMX160_ACCEL_RANGE_16G,
 #                                 BMX160_ACCEL_RANGE_8G,
@@ -126,13 +128,12 @@ BMX160_ACCEL_RANGE_CONSTANTS = [BMX160_ACCEL_RANGE_2G,
                                 BMX160_ACCEL_RANGE_16G]
 BMX160_ACCEL_RANGE_VALUES = [2, 4, 8, 16]
 
-
 # Gyro Range
-BMX160_GYRO_RANGE_2000_DPS           = const(0x00)
-BMX160_GYRO_RANGE_1000_DPS           = const(0x01)
-BMX160_GYRO_RANGE_500_DPS            = const(0x02)
-BMX160_GYRO_RANGE_250_DPS            = const(0x03)
-BMX160_GYRO_RANGE_125_DPS            = const(0x04)
+BMX160_GYRO_RANGE_2000_DPS = const(0x00)
+BMX160_GYRO_RANGE_1000_DPS = const(0x01)
+BMX160_GYRO_RANGE_500_DPS = const(0x02)
+BMX160_GYRO_RANGE_250_DPS = const(0x03)
+BMX160_GYRO_RANGE_125_DPS = const(0x04)
 
 BMX160_GYRO_RANGE_CONSTANTS = [BMX160_GYRO_RANGE_2000_DPS,
                                BMX160_GYRO_RANGE_1000_DPS,
@@ -142,31 +143,31 @@ BMX160_GYRO_RANGE_CONSTANTS = [BMX160_GYRO_RANGE_2000_DPS,
 BMX160_GYRO_RANGE_VALUES = [2000, 1000, 500, 250, 125]
 
 # Delay in ms settings
-BMX160_ACCEL_DELAY                   = 0.005
-BMX160_GYRO_DELAY                    = 0.0081
-BMX160_ONE_MS_DELAY                  = 0.001
-BMX160_MAG_COM_DELAY                 = 0.001
-BMX160_GYRO_SELF_TEST_DELAY          = 0.002
-BMX160_ACCEL_SELF_TEST_DELAY         = 0.005
+BMX160_ACCEL_DELAY = 0.005
+BMX160_GYRO_DELAY = 0.0081
+BMX160_ONE_MS_DELAY = 0.001
+BMX160_MAG_COM_DELAY = 0.001
+BMX160_GYRO_SELF_TEST_DELAY = 0.002
+BMX160_ACCEL_SELF_TEST_DELAY = 0.005
 
 # Output Data Rate settings
 # Accel Output data rate
-BMX160_ACCEL_ODR_RESERVED            = const(0x00)
-BMX160_ACCEL_ODR_0_78HZ              = const(0x01)
-BMX160_ACCEL_ODR_1_56HZ              = const(0x02)
-BMX160_ACCEL_ODR_3_12HZ              = const(0x03)
-BMX160_ACCEL_ODR_6_25HZ              = const(0x04)
-BMX160_ACCEL_ODR_12_5HZ              = const(0x05)
-BMX160_ACCEL_ODR_25HZ                = const(0x06)
-BMX160_ACCEL_ODR_50HZ                = const(0x07)
-BMX160_ACCEL_ODR_100HZ               = const(0x08)
-BMX160_ACCEL_ODR_200HZ               = const(0x09)
-BMX160_ACCEL_ODR_400HZ               = const(0x0A)
-BMX160_ACCEL_ODR_800HZ               = const(0x0B)
-BMX160_ACCEL_ODR_1600HZ              = const(0x0C)
-BMX160_ACCEL_ODR_RESERVED0           = const(0x0D)
-BMX160_ACCEL_ODR_RESERVED1           = const(0x0E)
-BMX160_ACCEL_ODR_RESERVED2           = const(0x0F)
+BMX160_ACCEL_ODR_RESERVED = const(0x00)
+BMX160_ACCEL_ODR_0_78HZ = const(0x01)
+BMX160_ACCEL_ODR_1_56HZ = const(0x02)
+BMX160_ACCEL_ODR_3_12HZ = const(0x03)
+BMX160_ACCEL_ODR_6_25HZ = const(0x04)
+BMX160_ACCEL_ODR_12_5HZ = const(0x05)
+BMX160_ACCEL_ODR_25HZ = const(0x06)
+BMX160_ACCEL_ODR_50HZ = const(0x07)
+BMX160_ACCEL_ODR_100HZ = const(0x08)
+BMX160_ACCEL_ODR_200HZ = const(0x09)
+BMX160_ACCEL_ODR_400HZ = const(0x0A)
+BMX160_ACCEL_ODR_800HZ = const(0x0B)
+BMX160_ACCEL_ODR_1600HZ = const(0x0C)
+BMX160_ACCEL_ODR_RESERVED0 = const(0x0D)
+BMX160_ACCEL_ODR_RESERVED1 = const(0x0E)
+BMX160_ACCEL_ODR_RESERVED2 = const(0x0F)
 
 BMX160_ACCEL_ODR_CONSTANTS = [BMX160_ACCEL_ODR_1600HZ,
                               BMX160_ACCEL_ODR_800HZ,
@@ -183,15 +184,15 @@ BMX160_ACCEL_ODR_CONSTANTS = [BMX160_ACCEL_ODR_1600HZ,
 BMX160_ACCEL_ODR_VALUES = [1600, 800, 400, 200, 100, 50, 25, 12.5, 6.25, 3.12, 1.56, 0.78]
 
 # Gyro Output data rate
-BMX160_GYRO_ODR_RESERVED             = const(0x00)
-BMX160_GYRO_ODR_25HZ                 = const(0x06)
-BMX160_GYRO_ODR_50HZ                 = const(0x07)
-BMX160_GYRO_ODR_100HZ                = const(0x08)
-BMX160_GYRO_ODR_200HZ                = const(0x09)
-BMX160_GYRO_ODR_400HZ                = const(0x0A)
-BMX160_GYRO_ODR_800HZ                = const(0x0B)
-BMX160_GYRO_ODR_1600HZ               = const(0x0C)
-BMX160_GYRO_ODR_3200HZ               = const(0x0D)
+BMX160_GYRO_ODR_RESERVED = const(0x00)
+BMX160_GYRO_ODR_25HZ = const(0x06)
+BMX160_GYRO_ODR_50HZ = const(0x07)
+BMX160_GYRO_ODR_100HZ = const(0x08)
+BMX160_GYRO_ODR_200HZ = const(0x09)
+BMX160_GYRO_ODR_400HZ = const(0x0A)
+BMX160_GYRO_ODR_800HZ = const(0x0B)
+BMX160_GYRO_ODR_1600HZ = const(0x0C)
+BMX160_GYRO_ODR_3200HZ = const(0x0D)
 
 BMX160_GYRO_ODR_CONSTANTS = [BMX160_GYRO_ODR_3200HZ,
                              BMX160_GYRO_ODR_1600HZ,
@@ -203,49 +204,81 @@ BMX160_GYRO_ODR_CONSTANTS = [BMX160_GYRO_ODR_3200HZ,
 BMX160_GYRO_ODR_VALUES = [3200, 1600, 800, 400, 200, 100, 50]
 
 # Auxiliary sensor Output data rate
-BMX160_MAG_ODR_RESERVED              = const(0x00)
-BMX160_MAG_ODR_0_78HZ                = const(0x01)
-BMX160_MAG_ODR_1_56HZ                = const(0x02)
-BMX160_MAG_ODR_3_12HZ                = const(0x03)
-BMX160_MAG_ODR_6_25HZ                = const(0x04)
-BMX160_MAG_ODR_12_5HZ                = const(0x05)
-BMX160_MAG_ODR_25HZ                  = const(0x06)
-BMX160_MAG_ODR_50HZ                  = const(0x07)
-BMX160_MAG_ODR_100HZ                 = const(0x08)
-BMX160_MAG_ODR_200HZ                 = const(0x09)
-BMX160_MAG_ODR_400HZ                 = const(0x0A)
-BMX160_MAG_ODR_800HZ                 = const(0x0B)
+BMX160_MAG_ODR_RESERVED = const(0x00)
+BMX160_MAG_ODR_0_78HZ = const(0x01)
+BMX160_MAG_ODR_1_56HZ = const(0x02)
+BMX160_MAG_ODR_3_12HZ = const(0x03)
+BMX160_MAG_ODR_6_25HZ = const(0x04)
+BMX160_MAG_ODR_12_5HZ = const(0x05)
+BMX160_MAG_ODR_25HZ = const(0x06)
+BMX160_MAG_ODR_50HZ = const(0x07)
+BMX160_MAG_ODR_100HZ = const(0x08)
+BMX160_MAG_ODR_200HZ = const(0x09)
+BMX160_MAG_ODR_400HZ = const(0x0A)
+BMX160_MAG_ODR_800HZ = const(0x0B)
 
 # Accel, gyro and aux. sensor length and also their combined length definitions in FIFO
-BMX160_FIFO_G_LENGTH                 = const(6)
-BMX160_FIFO_A_LENGTH                 = const(6)
-BMX160_FIFO_M_LENGTH                 = const(8)
-BMX160_FIFO_GA_LENGTH                = const(12)
-BMX160_FIFO_MA_LENGTH                = const(14)
-BMX160_FIFO_MG_LENGTH                = const(14)
-BMX160_FIFO_MGA_LENGTH               = const(20)
+BMX160_FIFO_G_LENGTH = const(6)
+BMX160_FIFO_A_LENGTH = const(6)
+BMX160_FIFO_M_LENGTH = const(8)
+BMX160_FIFO_GA_LENGTH = const(12)
+BMX160_FIFO_MA_LENGTH = const(14)
+BMX160_FIFO_MG_LENGTH = const(14)
+BMX160_FIFO_MGA_LENGTH = const(20)
 
 # I2C address
-BMX160_I2C_ADDR            = const(0x68)
-BMX160_I2C_ALT_ADDR        = const(0x69)  # alternate address
+BMX160_I2C_ADDR = const(0x68)
+BMX160_I2C_ALT_ADDR = const(0x69)  # alternate address
 # Interface settings
-BMX160_SPI_INTF            = const(1)
-BMX160_I2C_INTF            = const(0)
-BMX160_SPI_RD_MASK         = const(0x80)
-BMX160_SPI_WR_MASK         = const(0x7F)
+BMX160_SPI_INTF = const(1)
+BMX160_I2C_INTF = const(0)
+BMX160_SPI_RD_MASK = const(0x80)
+BMX160_SPI_WR_MASK = const(0x7F)
 
 # Error related
-BMX160_OK                  = const(0)
-BMX160_ERROR               = const(-1)
+BMX160_OK = const(0)
+BMX160_ERROR = const(-1)
 
 # Each goes with a different sensitivity in decreasing order
-AccelSensitivity2Gravity_values = [2048, 4086, 8192, 16384]   # accelerometer sensitivity. See Section 1.2, Table 2
+AccelSensitivity2Gravity_values = [2048, 4086, 8192, 16384]  # accelerometer sensitivity. See Section 1.2, Table 2
 GyroSensitivity2DegPerSec_values = [16.4, 32.8, 65.6, 131.2, 262.4]  # Section 1.2, Table 3
 
-g_TO_METERS_PER_SECOND_SQUARED = 1/9.80665 # in m/s^2
+g_TO_METERS_PER_SECOND_SQUARED = 1 / 9.80665  # in m/s^2
 
 AccelSensitivity2Gravity = const(16384)  # accelerometer sensitivity. See Section 1.2, Table 2
-GyroSensitivity2DegPerSec = 131.2        # gyroscope sensitivity. See Section 1.2, Table 3
+GyroSensitivity2DegPerSec = 131.2  # gyroscope sensitivity. See Section 1.2, Table 3
+
+
+####################################################################################
+#################### FROM  adafruit_register.i2c_struct ##############################
+####################################################################################
+
+class Struct:
+    """
+    Arbitrary structure register that is readable and writeable.
+
+    Values are tuples that map to the values in the defined struct.  See struct
+    module documentation for struct format string and its possible value types.
+
+    :param int register_address: The register address to read the bit from
+    :param str struct_format: The struct format string for this register.
+    """
+
+    def __init__(self, register_address: int, struct_format: str) -> None:
+        self.format = struct_format
+        self.buffer = bytearray(1 + struct.calcsize(self.format))
+        self.buffer[0] = register_address
+
+    def __get__(self, obj, objtype=None):
+        obj.i2c_device.write_then_readinto(self.buffer, self.buffer, out_end=1, in_start=1)
+        return struct.unpack_from(self.format, memoryview(self.buffer)[1:])
+
+    def __set__(self, obj, value):
+        struct.pack_into(self.format, self.buffer, 1, *value)
+        obj.i2c_device.write(self.buffer)
+
+
+####################################################################################
 
 class _ScaledReadOnlyStruct(Struct):
     def __init__(self, register_address, struct_format, scale):
@@ -265,6 +298,159 @@ class _ScaledReadOnlyStruct(Struct):
 # TODO replace _SclaedReadOnlyStruct with Struct in BMX160 so that the
 # scale factor can be changed as a function of range mode
 
+####################################################################################
+#################### FROM  adafruit_register.i2c_bits ##############################
+####################################################################################
+
+class RWBits:
+    """
+    Multibit register (less than a full byte) that is readable and writeable.
+    This must be within a byte register.
+
+    Values are `int` between 0 and 2 ** ``num_bits`` - 1.
+
+    :param int num_bits: The number of bits in the field.
+    :param int register_address: The register address to read the bit from
+    :param int lowest_bit: The lowest bits index within the byte at ``register_address``
+    :param int register_width: The number of bytes in the register. Defaults to 1.
+    :param bool lsb_first: Is the first byte we read from I2C the LSB? Defaults to true
+    :param bool signed: If True, the value is a "two's complement" signed value.
+                        If False, it is unsigned.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments
+            self,
+            num_bits: int,
+            register_address: int,
+            lowest_bit: int,
+            register_width: int = 1,
+            lsb_first: bool = True,
+            signed: bool = False,
+    ):
+        self.bit_mask = ((1 << num_bits) - 1) << lowest_bit
+        # print("bitmask: ",hex(self.bit_mask))
+        if self.bit_mask >= 1 << (register_width * 8):
+            raise ValueError("Cannot have more bits than register size")
+        self.lowest_bit = lowest_bit
+        self.buffer = bytearray(1 + register_width)
+        self.buffer[0] = register_address
+        self.lsb_first = lsb_first
+        self.sign_bit = (1 << (num_bits - 1)) if signed else 0
+
+    def __get__(self, obj, objtype=None):
+        obj.i2c_device.write_then_readinto(self.buffer, self.buffer, out_end=1, in_start=1)
+        # read the number of bytes into a single variable
+        reg = 0
+        order = range(len(self.buffer) - 1, 0, -1)
+        if not self.lsb_first:
+            order = reversed(order)
+        for i in order:
+            reg = (reg << 8) | self.buffer[i]
+        reg = (reg & self.bit_mask) >> self.lowest_bit
+        # If the value is signed and negative, convert it
+        if reg & self.sign_bit:
+            reg -= 2 * self.sign_bit
+        return reg
+
+    def __set__(self, obj, value: int) -> None:
+        value <<= self.lowest_bit  # shift the value over to the right spot
+        obj.i2c_device.write_then_readinto(self.buffer, self.buffer, out_end=1, in_start=1)
+        reg = 0
+        order = range(len(self.buffer) - 1, 0, -1)
+        if not self.lsb_first:
+            order = range(1, len(self.buffer))
+        for i in order:
+            reg = (reg << 8) | self.buffer[i]
+        # print("old reg: ", hex(reg))
+        reg &= ~self.bit_mask  # mask off the bits we're about to change
+        reg |= value  # then or in our new value
+        # print("new reg: ", hex(reg))
+        for i in reversed(order):
+            self.buffer[i] = reg & 0xFF
+            reg >>= 8
+        obj.i2c_device.write(self.buffer)
+
+
+class ROBits(RWBits):
+    """
+    Multibit register (less than a full byte) that is read-only. This must be
+    within a byte register.
+
+    Values are `int` between 0 and 2 ** ``num_bits`` - 1.
+
+    :param int num_bits: The number of bits in the field.
+    :param int register_address: The register address to read the bit from
+    :param type lowest_bit: The lowest bits index within the byte at ``register_address``
+    :param int register_width: The number of bytes in the register. Defaults to 1.
+    """
+
+    def __set__(self, obj, value: int):
+        raise AttributeError()
+
+
+####################################################################################
+
+####################################################################################
+#################### FROM  adafruit_register.i2c_bit ##############################
+####################################################################################
+
+class RWBit:
+    """
+    Single bit register that is readable and writeable.
+
+    Values are `bool`
+
+    :param int register_address: The register address to read the bit from
+    :param int bit: The bit index within the byte at ``register_address``
+    :param int register_width: The number of bytes in the register. Defaults to 1.
+    :param bool lsb_first: Is the first byte we read from I2C the LSB? Defaults to true
+
+    """
+
+    def __init__(
+            self,
+            register_address: int,
+            bit: int,
+            register_width: int = 1,
+            lsb_first: bool = True,
+    ):
+        self.bit_mask = 1 << (bit % 8)  # the bitmask *within* the byte!
+        self.buffer = bytearray(1 + register_width)
+        self.buffer[0] = register_address
+        if lsb_first:
+            self.byte = bit // 8 + 1  # the byte number within the buffer
+        else:
+            self.byte = register_width - (bit // 8)  # the byte number within the buffer
+
+    def __get__(self, obj, objtype=None):
+        obj.i2c_device.write_then_readinto(self.buffer, self.buffer, out_end=1, in_start=1)
+        return bool(self.buffer[self.byte] & self.bit_mask)
+
+    def __set__(self, obj, value: bool):
+        obj.i2c_device.write_then_readinto(self.buffer, self.buffer, out_end=1, in_start=1)
+        if value:
+            self.buffer[self.byte] |= self.bit_mask
+        else:
+            self.buffer[self.byte] &= ~self.bit_mask
+        obj.i2c_device.write(self.buffer)
+
+
+class ROBit(RWBit):
+    """Single bit register that is read only. Subclass of `RWBit`.
+
+    Values are `bool`
+
+    :param int register_address: The register address to read the bit from
+    :param type bit: The bit index within the byte at ``register_address``
+    :param int register_width: The number of bytes in the register. Defaults to 1.
+
+    """
+
+    def __set__(self, obj, value: bool):
+        raise AttributeError()
+
+
+####################################################################################
 
 class BMX160:
     """
@@ -281,19 +467,19 @@ class BMX160:
     # multiplicative constants
 
     # NOTE THESE FIRST TWO GET SET IN THE INIT SEQUENCE
-    ACC_SCALAR = 1/(AccelSensitivity2Gravity * g_TO_METERS_PER_SECOND_SQUARED) # 1 m/s^2 = 0.101971621 g
-    GYR_SCALAR = 1/GyroSensitivity2DegPerSec_values[4]
-    MAG_SCALAR = 1/16
-    TEMP_SCALAR = 0.5**9
+    ACC_SCALAR = 1 / (AccelSensitivity2Gravity * g_TO_METERS_PER_SECOND_SQUARED)  # 1 m/s^2 = 0.101971621 g
+    GYR_SCALAR = 1 / GyroSensitivity2DegPerSec_values[4]
+    MAG_SCALAR = 1 / 16
+    TEMP_SCALAR = 0.5 ** 9
 
-    _accel = Struct(BMX160_ACCEL_DATA_ADDR, '<hhh') # this is the default scalar, but it should get reset anyhow in init
-    _gyro  = Struct(BMX160_GYRO_DATA_ADDR, '<hhh')
-    _mag   = Struct(BMX160_MAG_DATA_ADDR, '<hhh')
-    _temp  = Struct(BMX160_TEMP_DATA_ADDR, '<h')
-
+    _accel = Struct(BMX160_ACCEL_DATA_ADDR,
+                    '<hhh')  # this is the default scalar, but it should get reset anyhow in init
+    _gyro = Struct(BMX160_GYRO_DATA_ADDR, '<hhh')
+    _mag = Struct(BMX160_MAG_DATA_ADDR, '<hhh')
+    _temp = Struct(BMX160_TEMP_DATA_ADDR, '<h')
 
     ### STATUS BITS
-    status         = ROBits(8, BMX160_STATUS_ADDR, 0)
+    status = ROBits(8, BMX160_STATUS_ADDR, 0)
     status_acc_pmu = ROBits(2, BMX160_PMU_STATUS_ADDR, 4)
     status_gyr_pmu = ROBits(2, BMX160_PMU_STATUS_ADDR, 2)
     status_mag_pmu = ROBits(2, BMX160_PMU_STATUS_ADDR, 0)
@@ -302,25 +488,38 @@ class BMX160:
 
     # see ERR_REG in section 2.11.2
     _error_status = ROBits(8, BMX160_ERROR_REG_ADDR, 0)
-    error_code    = ROBits(4, BMX160_ERROR_REG_ADDR, 1)
-    drop_cmd_err  = ROBit(BMX160_ERROR_REG_ADDR, 6)
-    fatal_err     = ROBit(BMX160_ERROR_REG_ADDR, 0)
+    error_code = ROBits(4, BMX160_ERROR_REG_ADDR, 1)
+    drop_cmd_err = ROBit(BMX160_ERROR_REG_ADDR, 6)
+    fatal_err = ROBit(BMX160_ERROR_REG_ADDR, 0)
 
     # straight from the datasheet. Need to be renamed and better explained
     @property
-    def drdy_acc(self): return (self.status >> 7) & 1
+    def drdy_acc(self):
+        return (self.status >> 7) & 1
+
     @property
-    def drdy_gyr(self): return (self.status >> 6) & 1
+    def drdy_gyr(self):
+        return (self.status >> 6) & 1
+
     @property
-    def drdy_mag(self): return (self.status >> 5) & 1
+    def drdy_mag(self):
+        return (self.status >> 5) & 1
+
     @property
-    def nvm_rdy(self): return (self.status >> 4) & 1
+    def nvm_rdy(self):
+        return (self.status >> 4) & 1
+
     @property
-    def foc_rdy(self): return (self.status >> 3) & 1
+    def foc_rdy(self):
+        return (self.status >> 3) & 1
+
     @property
-    def mag_man_op(self): return (self.status >> 2) & 1
+    def mag_man_op(self):
+        return (self.status >> 2) & 1
+
     @property
-    def gyro_self_test_ok(self): return (self.status >> 1)  & 1
+    def gyro_self_test_ok(self):
+        return (self.status >> 1) & 1
 
     _BUFFER = bytearray(40)
     _smallbuf = bytearray(6)
@@ -330,7 +529,7 @@ class BMX160:
 
     # _gyro_bandwidth = NORMAL
     # _gyro_powermode = NORMAL
-    _gyro_odr = 25    # Hz
+    _gyro_odr = 25  # Hz
 
     # _accel_bandwidth = NORMAL
     # _accel_powermode = NORMAL
@@ -338,9 +537,8 @@ class BMX160:
 
     # _mag_bandwidth = NORMAL
     # _mag_powermode = NORMAL
-    _mag_odr = 25    # Hz
-    _mag_range = 250 # deg/sec
-
+    _mag_odr = 25  # Hz
+    _mag_range = 250  # deg/sec
 
     def __init__(self):
         # soft reset & reboot
@@ -367,6 +565,7 @@ class BMX160:
     @property
     def error_status(self):
         return format_binary(self._error_status)
+
     @property
     def query_error(self):
         return format_binary(self._error_status)
@@ -386,17 +585,18 @@ class BMX160:
 
     @property
     def temperature(self):
-        return self._temp[0]*self.TEMP_SCALAR+23
+        return self._temp[0] * self.TEMP_SCALAR + 23
+
     @property
     def temp(self):
-        return self._temp[0]*self.TEMP_SCALAR+23
+        return self._temp[0] * self.TEMP_SCALAR + 23
 
     @property
     def sensortime(self):
         tbuf = self.read_bytes(BMX160_SENSOR_TIME_ADDR, 3, self._smallbuf)
         t0, t1, t2 = tbuf[:3]
         t = (t2 << 16) | (t1 << 8) | t0
-        t *= 0.000039 # the time resolution is 39 microseconds
+        t *= 0.000039  # the time resolution is 39 microseconds
         return t
 
     ######################## SETTINGS RELATED ########################
@@ -445,7 +645,6 @@ class BMX160:
         else:
             pass
 
-
     @property
     def gyro_odr(self):
         return self._gyro_odr
@@ -490,7 +689,6 @@ class BMX160:
         # NOTE: this delay is a worst case. If we need repeated switching
         # we can choose the delay on a case-by-case basis.
         time.sleep(BMX160_GYRO_DELAY)
-
 
     ############## ACCELEROMETER SETTINGS  ##############
 
@@ -579,7 +777,7 @@ class BMX160:
     def init_mag(self):
         # see pg 25 of: https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMX160-DS000.pdf
         self.write_u8(BMX160_COMMAND_REG_ADDR, BMX160_MAG_NORMAL_MODE)
-        time.sleep(0.00065) # datasheet says wait for 650microsec
+        time.sleep(0.00065)  # datasheet says wait for 650microsec
         self.write_u8(BMX160_MAG_IF_0_ADDR, 0x80)
         # put mag into sleep mode
         self.write_u8(BMX160_MAG_IF_3_ADDR, 0x01)
@@ -599,11 +797,10 @@ class BMX160:
         self.write_u8(BMX160_MAG_IF_0_ADDR, 0x00)
         # put in low power mode.
         self.write_u8(BMX160_COMMAND_REG_ADDR, BMX160_MAG_LOWPOWER_MODE)
-        time.sleep(0.1) # takes this long to warm up (empirically)
-
+        time.sleep(0.1)  # takes this long to warm up (empirically)
 
     ## UTILS:
-    def generic_setter(self, desired, possible_values, bmx_constants, config_addr, warning_interp = ""):
+    def generic_setter(self, desired, possible_values, bmx_constants, config_addr, warning_interp=""):
         i = find_nearest_valid(desired, possible_values)
         rounded = possible_values[i]
         bmxconst = bmx_constants[i]
@@ -619,59 +816,51 @@ class BMX160:
 class BMX160_I2C(BMX160):
     """Driver for the BMX160 connect over I2C."""
 
-    def __init__(self, i2c):
-
-        try:
-            self.i2c_device = I2CDevice(i2c, BMX160_I2C_ADDR)
-        except:
-            self.i2c_device = I2CDevice(i2c, BMX160_I2C_ALT_ADDR)
-
+    def __init__(self, i2c_device):
+        self.i2c_device = i2c_device
         super().__init__()
 
     def read_u8(self, address):
-        with self.i2c_device as i2c:
-            self._BUFFER[0] = address & 0xFF
-            i2c.write_then_readinto(self._BUFFER, self._BUFFER, out_end=1, in_start=1, in_end=2)
+        self._BUFFER[0] = address & 0xFF
+        self.i2c_device.write_then_readinto(self._BUFFER, self._BUFFER, out_end=1, in_start=1, in_end=2)
         return self._BUFFER[1]
 
     def read_bytes(self, address, count, buf):
-        with self.i2c_device as i2c:
-            buf[0] = address & 0xFF
-            i2c.write_then_readinto(buf, buf, out_end=1, in_end=count)
+        buf[0] = address & 0xFF
+        self.i2c_device.write_then_readinto(buf, buf, out_end=1, in_end=count)
         return buf
 
     def write_u8(self, address, val):
-        with self.i2c_device as i2c:
-            self._BUFFER[0] = address & 0xFF
-            self._BUFFER[1] = val & 0xFF
-            i2c.write(self._BUFFER, end=2, stop=True)
+        self._BUFFER[0] = address & 0xFF
+        self._BUFFER[1] = val & 0xFF
+        self.i2c_device.write(self._BUFFER, end=2, stop=True)
 
 
-class BMX160_SPI(BMX160):
-    """Driver for the BMX160 connect over SPI."""
-    def __init__(self, spi, cs):
-        self.i2c_device = SPIDevice(spi, cs)
-        super().__init__()
-
-    def read_u8(self, address):
-        with self.i2c_device as spi:
-            self._BUFFER[0] = (address | 0x80) & 0xFF
-            spi.write(self._BUFFER, end=1)
-            spi.readinto(self._BUFFER, end=1)
-        return self._BUFFER[0]
-
-    def read_bytes(self, address, count, buf):
-        with self.i2c_device as spi:
-            buf[0] = (address | 0x80) & 0xFF
-            spi.write(buf, end=1)
-            spi.readinto(buf, end=count)
-        return buf
-
-    def write_u8(self, address, val):
-        with self.i2c_device as spi:
-            self._BUFFER[0] = (address & 0x7F) & 0xFF
-            self._BUFFER[1] = val & 0xFF
-            spi.write(self._BUFFER, end=2)
+# class BMX160_SPI(BMX160):
+#     """Driver for the BMX160 connect over SPI."""
+#     def __init__(self, spi, cs):
+#         self.i2c_device = SPIDevice(spi, cs)
+#         super().__init__()
+#
+#     def read_u8(self, address):
+#         with self.i2c_device as spi:
+#             self._BUFFER[0] = (address | 0x80) & 0xFF
+#             spi.write(self._BUFFER, end=1)
+#             spi.readinto(self._BUFFER, end=1)
+#         return self._BUFFER[0]
+#
+#     def read_bytes(self, address, count, buf):
+#         with self.i2c_device as spi:
+#             buf[0] = (address | 0x80) & 0xFF
+#             spi.write(buf, end=1)
+#             spi.readinto(buf, end=count)
+#         return buf
+#
+#     def write_u8(self, address, val):
+#         with self.i2c_device as spi:
+#             self._BUFFER[0] = (address & 0x7F) & 0xFF
+#             self._BUFFER[1] = val & 0xFF
+#             spi.write(self._BUFFER, end=2)
 
 
 # GENERIC UTILS:
@@ -687,11 +876,12 @@ def find_nearest_valid(desired, possible_values):
     except:
         return -1
 
-def settingswarning(interp = ""):
+
+def settingswarning(interp=""):
     if interp != "":
-            interp = " --"  + interp + " -- "
+        interp = " --" + interp + " -- "
     print("BMX160 error occurred during " + interp +
-         "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
+          "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
 
 
 def format_binary(b):

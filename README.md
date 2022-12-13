@@ -1,18 +1,23 @@
-# CircuitPython_BMX160
-CircuitPython driver for BMX160
+# micropython_BMX160
+This is a fork from CircuitPython_BMX160 that works with Micropython without requiring other libraries.
 
 For reference, see the datasheet for the device [here](https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMX160-DS000.pdf)
+
+THIS IS STILL WORK IN PROGRESS. USE AT YOUR OWN RISK.
 
 ## Example setup and usage:
 
 ```python
 import time
-import board, busio
-import bmx160
-
-# set up BMX160 through I2C # note: also supports SPI communication through the BMX160_SPI class
-i2c = busio.I2C(board.SCL1, board.SDA1) 
-bmx = bmx160.BMX160_I2C(i2c)  
+from micropython import const
+from machine import I2C
+from i2c_device import I2CDevice
+from bmx160 import BMX160_I2C
+ 
+ # set up BMX160 through I2C # note: SPI is not currently supported
+i2c = I2C(1, scl=Pin("SCL"), sda=Pin("SDA"))
+device = I2CDevice(i2c, const(0x68))
+bmx = BMX160_I2C(device)
 
 # conservative warm-up time
 time.sleep(0.1) 

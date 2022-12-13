@@ -1,31 +1,39 @@
 # micropython_BMX160
 This is a fork from CircuitPython_BMX160 that works with Micropython without requiring other libraries.
 
-For reference, see the datasheet for the device [here](https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMX160-DS000.pdf)
+For reference, see the datasheet for the device [here](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmx160-ds0001.pdf).
 
 THIS IS STILL WORK IN PROGRESS. USE AT YOUR OWN RISK.
 
 ## Example setup and usage:
 
+In order to use the `Makefile` you will need to install the [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html] library) on your host machine first.
+As an alternative use any serial app (e.g., screen).
+
+Note that you might need to adjust some I2C settings depending on your target Micropython board. 
+Check the `main.py` file.
+
+
 ```python
-import time
-from micropython import const
-from machine import I2C
-from i2c_device import I2CDevice
-from bmx160 import BMX160_I2C
- 
- # set up BMX160 through I2C # note: SPI is not currently supported
-i2c = I2C(1, scl=Pin("SCL"), sda=Pin("SDA"))
-device = I2CDevice(i2c, const(0x68))
-bmx = BMX160_I2C(device)
+# From host machine:
+$: make upload # make upload DEFAULT_PORT=YOUR_SERIAL_PORT_HERE to override
+$: make console #  make console DEFAULT_PORT=YOUR_SERIAL_PORT_HERE to override
 
-# conservative warm-up time
-time.sleep(0.1) 
-
-# Just call e.g. bmx.gyro to read the gyro value
-print("gyroscope:", bmx.gyro)
-print("accelerometer:", bmx.accel)
-print("magnetometer:", bmx.mag)
+# now inside REPL
+>>> CTRL-D # reset
+MPY: soft reboot
+gyro: (-0.06103516, 0.5340576, 0.7629395), accel: (0.0, 0.0, 0.0), mag: (5.0625, 17.5625, 22.6875)
+gyro: (-0.2593994, 0.4272461, 0.869751), accel: (0.0, 0.0, 0.0), mag: (7.0625, 20.0625, 22.5625)
+gyro: (-0.213623, 0.3814697, 0.9307861), accel: (-3.98874, 4.412514, -7.970297), mag: (6.0625, 18.5625, 22.9375)
+gyro: (-0.2288818, 0.3967285, 0.9002686), accel: (-4.055778, 4.486734, -8.094796), mag: (5.5625, 17.5625, 22.6875)
+gyro: (-0.2288818, 0.3662109, 0.9460449), accel: (-4.050989, 4.48434, -8.09719), mag: (6.5625, 19.5625, 22.8125)
+gyro: (-0.213623, 0.3814697, 0.9307861), accel: (-4.053383, 4.486734, -8.087613), mag: (6.5625, 19.0625, 22.8125)
+gyro: (-0.2593994, 0.3967285, 0.9155273), accel: (-4.050989, 4.491522, -8.092402), mag: (5.5625, 18.5625, 23.0625)
+gyro: (-0.2746582, 0.3662109, 0.8850098), accel: (-4.050989, 4.489128, -8.085219), mag: (5.5625, 18.5625, 23.0625)
+gyro: (-0.213623, 0.3662109, 0.9002686), accel: (-4.053383, 4.489128, -8.092402), mag: (6.0625, 18.5625, 22.9375)
+gyro: (-0.2288818, 0.3356934, 0.9155273), accel: (-4.046201, 4.48434, -8.092402), mag: (6.0625, 17.5625, 22.8125)
+>>> CTRL-C # stop
+>>> Ctrl-] # exit shell (CTRL-´ on latin keyboard) 
 ```
 
 ## Sensors
